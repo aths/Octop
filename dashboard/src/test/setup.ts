@@ -59,6 +59,23 @@ afterEach(() => {
 });
 
 if (typeof window !== "undefined") {
+  // jsdom ships no geometry interfaces; pdfjs-dist's canvas layer references
+  // DOMMatrix at module-eval time, which breaks any suite that transitively
+  // imports PdfDocumentPreview. An identity stub is enough — tests never render
+  // PDF pages.
+  if (!("DOMMatrix" in window)) {
+    class DOMMatrixStub {
+      m22 = 1;
+      multiplySelf(): this {
+        return this;
+      }
+    }
+    (window as unknown as { DOMMatrix: typeof DOMMatrixStub }).DOMMatrix =
+      DOMMatrixStub;
+    (globalThis as unknown as { DOMMatrix: typeof DOMMatrixStub }).DOMMatrix =
+      DOMMatrixStub;
+  }
+
   // matchMedia
   if (!window.matchMedia) {
     Object.defineProperty(window, "matchMedia", {

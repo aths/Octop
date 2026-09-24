@@ -43,6 +43,13 @@ describe("publishedExpertsApi", () => {
       "/experts/published/expert%2F1/refresh",
       {
         method: "POST",
+        // The backend RefreshPublishedExpertBody accepts optional snapshot
+        // overrides; the client serializes the payload when one is supplied.
+        body: JSON.stringify({
+          name: "Updated",
+          description: "New description",
+          welcome_message: { zh: "欢迎", en: "Welcome" },
+        }),
       },
     );
     expect(request).toHaveBeenNthCalledWith(
