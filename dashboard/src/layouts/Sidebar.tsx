@@ -3,10 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
 import AvatarDropdown from "../components/AvatarDropdown";
-import AppVersionBadge from "../components/AppVersionBadge";
-import CurrentVersionBadge from "../components/CurrentVersionBadge";
 import { ArrowRightLeft, X, ChevronDown } from "lucide-react";
-import { useTheme } from "../context/ThemeContext";
 import { useLayoutMode } from "../context/LayoutModeContext";
 import { useUserRole } from "../hooks/useUserRole";
 import { useCurrentUser, useSetCurrentUser } from "../hooks/useCurrentUser";
@@ -36,8 +33,6 @@ import { typeSize } from "../utils/mobileTypeScale";
 import { DESKTOP_DRAG_REGION_CLASS } from "../utils/desktopChrome";
 
 const NAV_GROUPS_STORAGE_KEY = "octop:sidebar-nav-groups";
-/** Minimal settings pane: skip the "设置" group header (duplicates the pane title). */
-const MINIMAL_SETTINGS_HIDDEN_HEADERS = new Set(["nav.settings"]);
 
 function loadCollapsedGroups(): Set<string> {
   try {
@@ -244,8 +239,11 @@ function NavList({
   isGroupCollapsed,
   toggleGroup,
   sectionFilter = "all",
-  /** Group keys whose section headers are omitted (items still render). */
-  hideGroupHeaderKeys,
+  /**
+   * When set, that group's items render flat at the very top (no group header)
+   * and the group itself is omitted. Used by the minimal "更多" settings pane.
+   */
+  flattenGroupKey,
 }: {
   selectedKey: string;
   onNavigate: (path: string) => void;
@@ -256,20 +254,28 @@ function NavList({
   toggleGroup: (groupKey: string) => void;
   /** all = classic; primary = top flat entries; grouped = settings/control/admin */
   sectionFilter?: "all" | "primary" | "grouped";
-  hideGroupHeaderKeys?: ReadonlySet<string>;
+  flattenGroupKey?: string;
 }) {
   const { t } = useTranslation();
   const role = useUserRole();
   const user = useCurrentUser();
   const { hasUpdate } = useUpdateStatus();
   const { mobileEnabled } = useServerCapabilities();
-  const navSections = buildNavSections(user, { mobileEnabled }).filter(
+  let navSections = buildNavSections(user, { mobileEnabled }).filter(
     (section) => {
       if (sectionFilter === "primary") return !section.groupKey;
       if (sectionFilter === "grouped") return Boolean(section.groupKey);
       return true;
     },
   );
+
+  // Pull the flattened group's items to the top and drop that group.
+  let flattenedItems: NavItem[] = [];
+  if (flattenGroupKey) {
+    flattenedItems =
+      navSections.find((s) => s.groupKey === flattenGroupKey)?.items ?? [];
+    navSections = navSections.filter((s) => s.groupKey !== flattenGroupKey);
+  }
 
   const MOBILE_HIDDEN_KEYS = new Set<string>();
 
@@ -284,6 +290,26 @@ function NavList({
             : "8px 12px",
       }}
     >
+      {flattenedItems.length > 0 ? (
+        <div className={styles.navGroup}>
+          <div className={styles.navGroupItems}>
+            {flattenedItems.map((item) => (
+              <NavItemButton
+                key={item.key}
+                item={item}
+                active={selectedKey === item.key}
+                isMobile={isMobile}
+                onNavigate={onNavigate}
+                onExpandChatRail={onExpandChatRail}
+                showChatRailExpand={showChatRailExpand}
+                role={role}
+                hasUpdate={hasUpdate}
+                t={t}
+              />
+            ))}
+          </div>
+        </div>
+      ) : null}
       {navSections.map((section, sectionIndex) => {
         const visibleItems = isMobile
           ? section.items.filter((item) => !MOBILE_HIDDEN_KEYS.has(item.key))
@@ -291,10 +317,7 @@ function NavList({
         if (visibleItems.length === 0) return null;
 
         const sectionKey = section.groupKey ?? `flat-${sectionIndex}`;
-        const hideHeader =
-          Boolean(section.groupKey) &&
-          Boolean(hideGroupHeaderKeys?.has(section.groupKey!));
-        const isFlat = !section.groupKey || hideHeader;
+        const isFlat = !section.groupKey;
         const groupCollapsed = section.groupKey
           ? isGroupCollapsed(section.groupKey)
           : false;
@@ -377,7 +400,6 @@ export default function Sidebar({
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useTranslation();
-  const { isDark } = useTheme();
   const role = useUserRole();
   const user = useCurrentUser();
   const setUser = useSetCurrentUser();
@@ -395,7 +417,6 @@ export default function Sidebar({
   const showChatRailExpand = !isMinimal && !chatSidebarOpen;
 
   const isRailCollapsed = collapsed && !isMobile;
-  const wordmarkSrc = isDark ? "/logo_name_dark.png" : "/logo_name.png";
 
   const selectMinimalPane = useCallback(
     (pane: MinimalNavPane, opts?: { expand?: boolean }) => {
@@ -455,27 +476,19 @@ export default function Sidebar({
   ]);
 
   const brandInner = (
-    <>
-      <img
-        src={isRailCollapsed ? "/pwa-192.png" : wordmarkSrc}
-        alt="Octop"
-        style={{
-          height: isRailCollapsed ? 32 : isMobile ? 38 : 36,
-          width: isRailCollapsed ? 32 : "auto",
-          maxWidth: isRailCollapsed ? 32 : isMobile ? 190 : 160,
-          objectFit: "contain",
-          display: "block",
-          flexShrink: 0,
-          borderRadius: isRailCollapsed ? 8 : undefined,
-        }}
-      />
-      {!isRailCollapsed && !isMobile && (
-        <>
-          <CurrentVersionBadge isMobile={isMobile} />
-          <AppVersionBadge isMobile={isMobile} />
-        </>
-      )}
-    </>
+    <img
+      src={isRailCollapsed ? "/pwa-192.png" : "/logo_seai_mom.png"}
+      alt="Octop"
+      style={{
+        height: isRailCollapsed ? 32 : "auto",
+        width: isRailCollapsed ? 32 : "90%",
+        maxWidth: isRailCollapsed ? 32 : "90%",
+        objectFit: "contain",
+        display: "block",
+        flexShrink: 0,
+        borderRadius: isRailCollapsed ? 8 : undefined,
+      }}
+    />
   );
 
   const userFooter = (
@@ -594,7 +607,7 @@ export default function Sidebar({
               isGroupCollapsed={isGroupCollapsed}
               toggleGroup={toggleGroup}
               sectionFilter="grouped"
-              hideGroupHeaderKeys={MINIMAL_SETTINGS_HIDDEN_HEADERS}
+              flattenGroupKey="nav.more"
             />
           </div>
         </>

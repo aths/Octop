@@ -35,6 +35,9 @@ const ROUTE_PREFETCHERS: Record<string, () => Promise<unknown>> = {
   "/admin/security": () => import("../pages/Settings/Security"),
   "/admin/advanced": () => import("../pages/Settings/AdvancedSettings"),
   "/agent-config": () => import("../pages/Agent/Config"),
+  "/home": () => import("../pages/Workplace"),
+  "/approvals": () => import("../components/PlaceholderPage"),
+  "/decisions": () => import("../components/PlaceholderPage"),
 };
 
 export function prefetchRoute(path: string): void {

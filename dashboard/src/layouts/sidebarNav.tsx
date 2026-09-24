@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
 import {
-  Monitor,
   MessageSquareText,
   Timer,
   SlidersHorizontal,
@@ -10,17 +9,18 @@ import {
   Cpu,
   Users as UsersIcon,
   Activity,
-  Share2,
   Sparkles,
   Puzzle,
-  Package,
   HardDrive,
   GraduationCap,
   Shield,
-  PanelsTopLeft,
+  Notebook,
+  LayoutDashboard,
+  ClipboardCheck,
+  ScrollText,
 } from "lucide-react";
 import type { OctopUser } from "../api/modules/auth";
-import { navAllowed, userCan } from "../utils/permissions";
+import { navAllowed } from "../utils/permissions";
 
 export const EXPANDED_WIDTH = 220;
 export const COLLAPSED_WIDTH = 56;
@@ -48,10 +48,7 @@ export interface NavSection {
  * comes from {@link buildNavSections}.
  */
 export const SIDEBAR_GROUPED_NAV_KEYS = [
-  "personalization",
   "channels",
-  "connectors",
-  "skill-packages",
   "knowledge-bases",
   "workbench",
   "remote-desktop",
@@ -63,6 +60,12 @@ export const SIDEBAR_GROUPED_NAV_KEYS = [
   "admin-security",
   "admin-advanced",
   "agent-config",
+  // AI-MOM navigation
+  "token-usage",
+  "approvals",
+  "decisions",
+  "settings-skills",
+  "settings-memory",
 ] as const;
 
 const GROUPED_NAV_KEY_SET = new Set<string>(SIDEBAR_GROUPED_NAV_KEYS);
@@ -73,11 +76,18 @@ export function isGroupedNavKey(key: string): boolean {
 
 export function buildNavSections(
   user: OctopUser | null,
-  opts?: { mobileEnabled?: boolean },
+  _opts?: { mobileEnabled?: boolean },
 ): NavSection[] {
+  // Primary (flat) entries.
   const sections: NavSection[] = [
     {
       items: [
+        {
+          key: "home",
+          path: "/home",
+          icon: <LayoutDashboard size={iconSize} strokeWidth={iconStroke} />,
+          labelKey: "nav.home",
+        },
         {
           key: "chat",
           path: "/chat",
@@ -90,30 +100,54 @@ export function buildNavSections(
           icon: <GraduationCap size={iconSize} strokeWidth={iconStroke} />,
           labelKey: "nav.experts",
         },
-        {
-          key: "tasks",
-          path: "/tasks",
-          icon: <Timer size={iconSize} strokeWidth={iconStroke} />,
-          labelKey: "nav.tasks",
-        },
-        {
-          key: "token-usage",
-          path: "/token-usage",
-          icon: <Activity size={iconSize} strokeWidth={iconStroke} />,
-          labelKey: "nav.tokenUsage",
-        },
       ],
     },
   ];
 
-  const settingsItems: NavItem[] = [
-    {
-      key: "personalization",
-      path: "/personalization/skills",
-      icon: <Sparkles size={iconSize} strokeWidth={iconStroke} />,
-      labelKey: "nav.personalization",
-    },
-  ];
+  // Keep the existing permission gate: users without the connectors module
+  // would only hit the route guard otherwise.
+  if (navAllowed(user, "connectors")) {
+    sections[0].items.push({
+      key: "connectors",
+      path: "/connectors",
+      icon: <Link2 size={iconSize} strokeWidth={iconStroke} />,
+      labelKey: "nav.connectors",
+    });
+  }
+  sections[0].items.push({
+    key: "tasks",
+    path: "/tasks",
+    icon: <Timer size={iconSize} strokeWidth={iconStroke} />,
+    labelKey: "nav.tasks",
+  });
+
+  // 更多 — approvals / decisions / usage.
+  sections.push({
+    groupKey: "nav.more",
+    items: [
+      {
+        key: "approvals",
+        path: "/approvals",
+        icon: <ClipboardCheck size={iconSize} strokeWidth={iconStroke} />,
+        labelKey: "nav.approvals",
+      },
+      {
+        key: "decisions",
+        path: "/decisions",
+        icon: <ScrollText size={iconSize} strokeWidth={iconStroke} />,
+        labelKey: "nav.decisions",
+      },
+      {
+        key: "token-usage",
+        path: "/token-usage",
+        icon: <Activity size={iconSize} strokeWidth={iconStroke} />,
+        labelKey: "nav.tokenUsage",
+      },
+    ],
+  });
+
+  // 设置 — 通道 / 技能 / 记忆 / 知识库.
+  const settingsItems: NavItem[] = [];
   if (navAllowed(user, "channels")) {
     settingsItems.push({
       key: "channels",
@@ -122,22 +156,19 @@ export function buildNavSections(
       labelKey: "nav.channels",
     });
   }
-  if (navAllowed(user, "connectors")) {
-    settingsItems.push({
-      key: "connectors",
-      path: "/connectors",
-      icon: <Link2 size={iconSize} strokeWidth={iconStroke} />,
-      labelKey: "nav.connectors",
-    });
-  }
-  if (navAllowed(user, "skill-packages")) {
-    settingsItems.push({
-      key: "skill-packages",
-      path: "/skill-packages",
-      icon: <Package size={iconSize} strokeWidth={iconStroke} />,
-      labelKey: "nav.skillPackages",
-    });
-  }
+  // Skills/memory tabs have no module gate in Personalization; neither do these.
+  settingsItems.push({
+    key: "settings-skills",
+    path: "/personalization/skills",
+    icon: <Sparkles size={iconSize} strokeWidth={iconStroke} />,
+    labelKey: "nav.skills",
+  });
+  settingsItems.push({
+    key: "settings-memory",
+    path: "/personalization/memory",
+    icon: <Notebook size={iconSize} strokeWidth={iconStroke} />,
+    labelKey: "nav.memory",
+  });
   if (navAllowed(user, "knowledge-bases")) {
     settingsItems.push({
       key: "knowledge-bases",
@@ -150,40 +181,7 @@ export function buildNavSections(
     sections.push({ groupKey: "nav.settings", items: settingsItems });
   }
 
-  const controlItems: NavItem[] = [];
-  if (navAllowed(user, "workbench")) {
-    controlItems.push({
-      key: "workbench",
-      path: "/workbench",
-      icon: <PanelsTopLeft size={iconSize} strokeWidth={iconStroke} />,
-      labelKey: "nav.workbench",
-    });
-  }
-  // Server desktop + phone share one nav entry; phone tab also needs host capability.
-  if (
-    userCan(user, "desktop") ||
-    (opts?.mobileEnabled && userCan(user, "mobile"))
-  ) {
-    controlItems.push({
-      key: "remote-desktop",
-      path: "/remote-desktop",
-      icon: <Monitor size={iconSize} strokeWidth={iconStroke} />,
-      labelKey: "nav.remoteDesktop",
-    });
-  }
-  // ACP: no module key this round — admin role only.
-  if (navAllowed(user, "acp")) {
-    controlItems.push({
-      key: "acp",
-      path: "/acp",
-      icon: <Share2 size={iconSize} strokeWidth={iconStroke} />,
-      labelKey: "nav.acp",
-    });
-  }
-  if (controlItems.length > 0) {
-    sections.push({ groupKey: "nav.control", items: controlItems });
-  }
-
+  // 管理 — unchanged permission gates and routes.
   const adminItems: NavItem[] = [];
   if (navAllowed(user, "admin-users")) {
     adminItems.push({
@@ -238,3 +236,7 @@ export function buildNavSections(
   }
   return sections;
 }
+
+// 控制 group (工作台/远程桌面/ACP) intentionally no longer rendered.
+// The /workbench, /remote-desktop and /acp routes and pages remain
+// reachable by URL; only the menu entries are hidden.

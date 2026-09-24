@@ -2,6 +2,7 @@ import { lazy } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 
 // Lazy-loaded pages — Common
+const HomePage = lazy(() => import("../pages/Workplace"));
 const ExpertsPage = lazy(() => import("../pages/Experts"));
 const CronJobsPage = lazy(() => import("../pages/Control/CronJobs"));
 const ConnectorsPage = lazy(() => import("../pages/Agent/Connectors"));
@@ -32,6 +33,7 @@ const AgentConfigPage = lazy(() => import("../pages/Agent/Config"));
 // Misc
 const PwaDebugPage = lazy(() => import("../pages/PwaDebug"));
 const NotFoundPage = lazy(() => import("../components/NotFoundPage"));
+const PlaceholderPage = lazy(() => import("../components/PlaceholderPage"));
 
 function RedirectPreserveSearch({ to }: { to: string }) {
   const location = useLocation();
@@ -48,6 +50,9 @@ export interface RouteConfig {
 export const pathToKey: Record<string, string> = {
   "/chat": "chat",
   // Common
+  "/home": "home",
+  "/approvals": "approvals",
+  "/decisions": "decisions",
   "/experts": "experts",
   "/tasks": "tasks",
   "/connectors": "connectors",
@@ -55,13 +60,13 @@ export const pathToKey: Record<string, string> = {
   "/knowledge-bases": "knowledge-bases",
   "/acp": "acp",
   "/personalization": "personalization",
-  "/personalization/skills": "personalization",
+  "/personalization/skills": "settings-skills",
   "/personalization/tools": "personalization",
   "/personalization/plugins": "personalization",
   "/personalization/subagents": "personalization",
   "/personalization/channels": "channels",
   "/personalization/mbti": "personalization",
-  "/personalization/memory": "personalization",
+  "/personalization/memory": "settings-memory",
   "/skills": "personalization",
   "/token-usage": "token-usage",
   "/agent-config": "agent-config",
@@ -148,6 +153,9 @@ export const routeConfigs: RouteConfig[] = [
   { path: "/chat/:agentId/:threadId", element: null, useWrapper: true },
 
   // Common
+  { path: "/home", element: <HomePage /> },
+  { path: "/approvals", element: <PlaceholderPage titleKey="nav.approvals" /> },
+  { path: "/decisions", element: <PlaceholderPage titleKey="nav.decisions" /> },
   { path: "/experts", element: <ExpertsPage /> },
   { path: "/tasks", element: <CronJobsPage /> },
   { path: "/connectors", element: <ConnectorsPage /> },
@@ -278,6 +286,6 @@ export const routeConfigs: RouteConfig[] = [
 
   // Misc
   { path: "/pwa-debug", element: <PwaDebugPage /> },
-  { path: "/", element: <Navigate to="/chat" replace /> },
+  { path: "/", element: <Navigate to="/home" replace /> },
   { path: "*", element: <NotFoundPage /> },
 ];

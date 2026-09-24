@@ -168,12 +168,16 @@
     "TOKEN_QUOTA_EXCEEDED": "This account has reached its token quota. Please contact an administrator to raise the limit ({{used}}/{{quota}})."
   },
   "nav": {
-    "chat": "Conversation",
+    "more": "More",
+    "home": "Workplace",
+    "approvals": "Approval Center",
+    "decisions": "Decision Ledger",
+    "chat": "New Conversation",
     "common": "Common",
     "control": "Control",
-    "experts": "Experts",
-    "tasks": "Automation",
-    "connectors": "Connectors",
+    "experts": "Manufacturing Experts",
+    "tasks": "Scheduled Tasks",
+    "connectors": "Connections & Integrations",
     "acp": "ACP",
     "agents": "Agents",
     "providers": "Providers",
@@ -207,7 +211,7 @@
     "user": "User Settings",
     "advancedSettings": "Advanced Settings",
     "embedding": "Embedding",
-    "tokenUsage": "Token Usage",
+    "tokenUsage": "Usage Report",
     "checkUpdates": "App Updates",
     "newVersionBadge": "New version",
     "admin": "Admin",
@@ -223,8 +227,25 @@
     "knowledgeBases": "Knowledge Bases",
     "remoteAndroid": "Remote Phone",
     "records": "Tasks",
-    "paneSettings": "Settings",
+    "paneSettings": "More",
     "paneRecords": "Tasks"
+  },
+  "placeholder": {
+    "comingSoon": "Under construction, stay tuned"
+  },
+  "workplace": {
+    "adminGreeting": "Admin view: workplace overview placeholders. Live data will be connected later.",
+    "userGreeting": "Welcome to AI-MOM. Your workplace placeholders are shown below; live data will be connected later.",
+    "cards": {
+      "systemStatus": "System Status",
+      "pendingApprovals": "Pending Approvals",
+      "resourceUsage": "Resource Usage",
+      "securityOverview": "Security Overview",
+      "myTasks": "My Tasks",
+      "myExperts": "My Experts",
+      "recentChats": "Recent Conversations",
+      "quickAccess": "Quick Access"
+    }
   },
   "skillPackages": {
     "title": "Skill Packages",

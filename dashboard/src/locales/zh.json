@@ -168,12 +168,16 @@
     "TOKEN_QUOTA_EXCEEDED": "该账号已达到 token 配额上限，请联系管理员提升额度（{{used}}/{{quota}}）。"
   },
   "nav": {
-    "chat": "对话",
+    "more": "更多",
+    "home": "工作台",
+    "approvals": "审批中心",
+    "decisions": "决策台账",
+    "chat": "新建对话",
     "common": "常用",
     "control": "控制",
-    "experts": "专家",
-    "tasks": "自动化",
-    "connectors": "连接器",
+    "experts": "制造专家",
+    "tasks": "定时任务",
+    "connectors": "连接与集成",
     "acp": "ACP",
     "agents": "Agents",
     "providers": "Providers",
@@ -207,7 +211,7 @@
     "user": "用户设置",
     "advancedSettings": "高级设置",
     "embedding": "Embedding",
-    "tokenUsage": "Token 统计",
+    "tokenUsage": "用量统计",
     "checkUpdates": "应用更新",
     "newVersionBadge": "有新版本",
     "admin": "管理",
@@ -223,8 +227,25 @@
     "skillPackages": "技能包",
     "remoteAndroid": "远程手机",
     "records": "任务",
-    "paneSettings": "设置",
+    "paneSettings": "更多",
     "paneRecords": "任务"
+  },
+  "placeholder": {
+    "comingSoon": "功能建设中，敬请期待"
+  },
+  "workplace": {
+    "adminGreeting": "管理员视图：以下为工作台概览占位模块，后续将接入实时数据。",
+    "userGreeting": "欢迎使用 AI-MOM，以下为你的工作台占位模块，后续将接入实时数据。",
+    "cards": {
+      "systemStatus": "系统运行状态",
+      "pendingApprovals": "待办审批",
+      "resourceUsage": "资源用量",
+      "securityOverview": "安全总览",
+      "myTasks": "我的任务",
+      "myExperts": "我的专家",
+      "recentChats": "最近对话",
+      "quickAccess": "快捷入口"
+    }
   },
   "skillPackages": {
     "title": "技能包",
