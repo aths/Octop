@@ -59,6 +59,7 @@ dev = [
     "httpx>=0.27",
     "ruff>=0.4",
     "mypy>=1.10",
+    "import-linter>=2.0",
     "build>=1.0",
     "xlwt>=1.3",
 ]
@@ -88,6 +89,7 @@ dev = [
     "httpx>=0.27",
     "ruff>=0.4",
     "mypy>=1.10",
+    "import-linter>=2.0",
     "build>=1.0",
     "xlwt>=1.3",
 ]
@@ -214,4 +216,94 @@ markers = [
 # fallback is intentional for this environment, so silence the noise.
 filterwarnings = [
     "ignore::starlette.exceptions.StarletteDeprecationWarning",
+]
+
+[tool.importlinter]
+root_package = "octop"
+
+# Layer bans from docs/contributing/module-boundaries.md. launch.py is the
+# composition root and is deliberately outside the forbidden edges.
+[[tool.importlinter.contracts]]
+name = "infra must not import transport layers (api, cli, launch)"
+type = "forbidden"
+source_modules = ["octop.infra"]
+forbidden_modules = ["octop.api", "octop.cli", "octop.launch"]
+
+[[tool.importlinter.contracts]]
+name = "api must not import cli or launch (wire serving in launch.py)"
+type = "forbidden"
+source_modules = ["octop.api"]
+forbidden_modules = ["octop.cli", "octop.launch"]
+
+[[tool.importlinter.contracts]]
+name = "cli must not import api (use launch.py for octop run)"
+type = "forbidden"
+source_modules = ["octop.cli"]
+forbidden_modules = ["octop.api"]
+# `octop run` is the documented bridge: cli.commands.run -> launch -> api.app.
+# That is the only possible indirect path — the infra contract above already
+# bans every infra -> api edge.
+allow_imports = ["octop.cli.commands.run -> octop.launch"]
+allow_indirect_imports = true
+
+[[tool.importlinter.contracts]]
+name = "infra/utils is a leaf package"
+type = "forbidden"
+source_modules = ["octop.infra.utils"]
+forbidden_modules = [
+    "octop.infra.agents",
+    "octop.infra.auth",
+    "octop.infra.backup",
+    "octop.infra.db",
+    "octop.infra.backup",
+    "octop.infra.backend",
+    "octop.infra.browser",
+    "octop.infra.connectors",
+    "octop.infra.cron",
+    "octop.infra.desktop",
+    "octop.infra.gateway",
+    "octop.infra.history",
+    "octop.infra.knowledge",
+    "octop.infra.mobile",
+    "octop.infra.proactive",
+    "octop.infra.providers",
+    "octop.infra.server",
+    "octop.infra.setup",
+    "octop.infra.skills",
+    "octop.infra.trajectory",
+    "octop.infra.usage",
+    "octop.infra.users",
+    "octop.infra.voice",
+]
+
+# Repos stay SQL-only; the three allow-listed edges import pure type/helper
+# modules that must remain leaf themselves (no further infra imports).
+[[tool.importlinter.contracts]]
+name = "infra/db/repos stays a leaf package (SQL only)"
+type = "forbidden"
+source_modules = ["octop.infra.db.repos"]
+forbidden_modules = [
+    "octop.infra.agents",
+    "octop.infra.auth",
+    "octop.infra.backup",
+    "octop.infra.backend",
+    "octop.infra.browser",
+    "octop.infra.connectors",
+    "octop.infra.desktop",
+    "octop.infra.gateway",
+    "octop.infra.history",
+    "octop.infra.mobile",
+    "octop.infra.proactive",
+    "octop.infra.providers",
+    "octop.infra.server",
+    "octop.infra.setup",
+    "octop.infra.skills",
+    "octop.infra.usage",
+    "octop.infra.users",
+    "octop.infra.voice",
+]
+allow_imports = [
+    "octop.infra.db.repos.cron -> octop.infra.cron.task_type",
+    "octop.infra.db.repos.knowledge -> octop.infra.knowledge.relpath",
+    "octop.infra.db.repos.trajectory_events -> octop.infra.trajectory.types",
 ]

@@ -61,7 +61,7 @@ help:
 	@echo "Quality targets (ship bar):"
 	@echo "  all              format-all + lint + typecheck + test (backend lint/typecheck/test)"
 	@echo "  precommit        fast change-aware gate for the git pre-commit hook (testmon-scoped tests)"
-	@echo "  lint             Ruff check + format check (src, tests)"
+	@echo "  lint             Ruff check + format check + import-layer contracts (src, tests)"
 	@echo "  format           Ruff auto-fix + format (src, tests)"
 	@echo "  typecheck        mypy --strict src/octop"
 	@echo "  test             pytest -m \"not live\""
@@ -79,7 +79,7 @@ help:
 	@echo "  check-all        lint-all + typecheck-all + test"
 	@echo ""
 	@echo "Utility targets:"
-	@echo "  install-hooks    Point git to .githooks (pre-commit: make all + dashboard build)"
+	@echo "  install-hooks    Point git to .githooks (pre-commit: make precommit + dashboard build)"
 	@echo "  install          Install Python dev dependencies (alias: install-dev)"
 	@echo "  install-dev      uv sync / pip install -e \".[dev]\""
 	@echo "  install-tools    Install build + twine for publishing"
@@ -207,6 +207,8 @@ lint:
 	$(RUN) ruff check src tests
 	@echo "[lint] Ruff format check..."
 	$(RUN) ruff format --check src tests
+	@echo "[lint] Import layer contracts..."
+	$(RUN) lint-imports
 
 .PHONY: format
 format:
